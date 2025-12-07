@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ruhi Textile</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;900&display=swap" rel="stylesheet">
+    <style>
+        /* --- 1. CORE THEME --- */
+        :root { 
+            --primary: #00f2ff; 
+            --secondary: #bc13fe; 
+            --gold: #FFD700;
+            --bg: #000000; 
+            --card: #141414;
+            --text: #ffffff;
+            --border: #333;
+            --grad: linear-gradient(90deg, #00f2ff, #bc13fe);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Montserrat', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); width: 100%; height: 100vh; overflow: hidden; color: white; }
+
+        /* --- 2. SCREEN SYSTEM --- */
+        .screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: none; flex-direction: column; background: var(--bg);
+            z-index: 10; overflow-y: auto;
+        }
+        /* Active class to show screen */
+        .screen.active { display: flex; }
+
+        /* --- 3. UI ELEMENTS --- */
+        /* Buttons */
+        .btn {
+            width: 100%; padding: 15px; border: none; border-radius: 50px;
+            font-weight: bold; font-size: 14px; cursor: pointer;
+            margin-top: 15px; position: relative; z-index: 100; /* Ensure Clickable */
+        }
+        .btn-main { background: var(--grad); color: white; box-shadow: 0 5px 15px rgba(0,242,255,0.3); }
+        .btn-sec { background: transparent; border: 2px solid var(--secondary); color: var(--secondary); }
+        .btn:active { transform: scale(0.96); }
+
+        /* Inputs */
+        input {
+            width: 100%; padding: 15px; margin-bottom: 10px; background: #222;
+            border: 1px solid #444; color: white; border-radius: 10px; outline: none; font-size: 16px;
+            position: relative; z-index: 100;
+        }
+
+        /* Login Screen Specific */
+        .login-center {
+            flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center;
+            padding: 30px; position: relative; z-index: 50;
+        }
+        .ruhi-title {
+            font-size: 36px; font-weight: 900; color: var(--primary); margin-bottom: 10px;
+            text-transform: uppercase; letter-spacing: 2px;
+            text-shadow: 0 0 10px rgba(0,242,255,0.5);
+        }
+        .offer-card {
+            border: 1px dashed var(--gold); background: rgba(255, 215, 0, 0.05);
+            padding: 15px; border-radius: 10px; margin-bottom: 30px; color: white; font-size: 12px; text-align: center;
+        }
+
+        /* Top Bar */
+        .top-bar {
+            width: 100%; height: 60px; padding: 0 20px;
+            display: flex; justify-content: space-between; align-items: center;
+            position: absolute; top: 0; left: 0; z-index: 200;
+        }
+        .top-bar i { font-size: 22px; color: #888; cursor: pointer; padding: 5px; }
+
+        /* --- 4. DASHBOARD --- */
+        .dash-header {
+            height: 65px; background: #111; border-bottom: 1px solid #333;
+            display: flex; justify-content: space-between; align-items: center; padding: 0 15px;
+        }
+        .dash-body { flex: 1; overflow-y: auto; padding: 15px; padding-bottom: 80px; }
+        
+        .banner {
+            height: 150px; background: linear-gradient(135deg, #ff0055, #bc13fe);
+            border-radius: 15px; display: flex; flex-direction: column; justify-content: center; padding: 20px;
+            margin-bottom: 20px; position: relative; overflow: hidden;
+        }
+        .banner i { position: absolute; right: -10px; bottom: -20px; font-size: 90px; opacity: 0.3; }
+
+        /* Grid */
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .card { background: var(--card); padding: 8px; border-radius: 10px; border: 1px solid #333; }
+        .card-img { width: 100%; height: 160px; object-fit: cover; border-radius: 8px; background: #333; margin-bottom: 8px; }
+        .card-title { font-size: 12px; font-weight: bold; margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .card-price { color: var(--primary); font-weight: bold; font-size: 14px; margin-bottom: 8px; }
+        
+        .btn-row { display: flex; gap: 5px; }
+        .btn-sm { flex: 1; padding: 8px; border-radius: 5px; border: none; font-weight: bold; font-size: 10px; cursor: pointer; }
+        .btn-view { background: #333; color: white; border: 1px solid #555; }
+        .btn-buy { background: linear-gradient(90deg, #ff8a00, #e52e71); color: white; }
+
+        /* Bottom Nav */
+        .nav { height: 60px; background: #111; position: fixed; bottom: 0; width: 100%; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #333; z-index: 100; }
+        .nav i { font-size: 22px; color: #666; }
+        .nav i.active { color: var(--primary); }
+
+        /* --- 5. OVERLAYS (POPUP, LOADER, SIDEBAR, DETAILS) --- */
+        .overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95); z-index: 10000; display: none;
+            align-items: center; justify-content: center; backdrop-filter: blur(5px);
+        }
+
+        /* POPUP BOX */
+        .popup-box {
+            width: 85%; max-width: 300px; background: #1a1a25; border: 2px solid var(--primary);
+            border-radius: 20px; padding: 25px; text-align: center;
+            box-shadow: 0 0 50px rgba(0, 242, 255, 0.2); animation: pop 0.3s;
+        }
+        @keyframes pop { from{transform:scale(0.5);} to{transform:scale(1);} }
+        .popup-btn { width: 100%; padding: 12px; background: var(--grad); color: white; border: none; border-radius: 50px; font-weight: bold; cursor: pointer; margin-top: 15px; }
+
+        /* DETAILS BOX */
+        .details-box {
+            width: 90%; background: #1a1a20; border: 1px solid var(--gold); border-radius: 15px;
+            padding: 20px; position: relative;
+        }
+        .close-icon { position: absolute; top: 10px; right: 15px; font-size: 24px; color: #888; cursor: pointer; }
+        
+        /* SIDEBAR */
+        .sidebar { position: fixed; top: 0; left: -280px; width: 280px; height: 100%; background: #111; z-index: 5000; transition: 0.3s; padding: 20px; border-right: 1px solid var(--primary); }
+        .sidebar.active { left: 0; }
+        .menu-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 4000; display: none; }
+        .side-item { padding: 15px 0; border-bottom: 1px solid #333; display: flex; gap: 15px; align-items: center; cursor: pointer; }
+
+        /* LOADER */
+        .spinner { width: 50px; height: 50px; border: 4px solid var(--primary); border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <div id="popup" class="overlay">
+        <div class="popup-box">
+            <h2 style="color:var(--primary); margin-bottom:10px;">RUHI ALERT</h2>
+            <p id="popupMsg" style="color:#ddd;">Message</p>
+            <button class="popup-btn" onclick="closePopup()">OK</button>
+        </div>
+    </div>
+
+    <div id="detailsPopup" class="overlay">
+        <div class="details-box">
+            <i class="fas fa-times close-icon" onclick="closeDetails()"></i>
+            <img id="dImg" style="width:100%; height:200px; object-fit:cover; border-radius:10px; margin-bottom:10px; border:1px solid #333;" src="">
+            <h3 id="dTitle">Name</h3>
+            <h2 id="dPrice" style="color:var(--primary); margin:5px 0 15px 0;">₹0</h2>
+            <div style="background:#222; padding:10px; border-radius:5px; font-size:13px; text-align:left;">
+                <p>Size: <span style="color:var(--gold);">38 (Standard)</span></p>
+                <p>Status: <span style="color:#00ff00;">All Colours Available</span></p>
+            </div>
+            <button class="popup-btn" onclick="buyFromDetails()">ORDER ON WHATSAPP</button>
+        </div>
+    </div>
+
+    <div id="loader" class="overlay" style="z-index: 20000;">
+        <div class="spinner"></div>
+    </div>
+
+    <div id="menuOverlay" class="menu-overlay" onclick="toggleMenu()"></div>
+    <div id="sidebar" class="sidebar">
+        <h2 style="color:var(--primary); margin-bottom:20px;">MENU</h2>
+        <div class="side-item" onclick="window.open('https://share.google/KtTDecNh54sPJIE82', '_blank')"><i class="fas fa-map-marker-alt" style="color:gold;"></i> GUJARAT SURAT</div>
+        <div class="side-item" onclick="window.location.href='tel:919608720622'"><i class="fas fa-phone-alt"></i> Call Support</div>
+        <div class="side-item" onclick="window.open('https://wa.me/919608720622', '_blank')"><i class="fab fa-whatsapp"></i> WhatsApp</div>
+        <div class="side-item" style="color:red; border:none; margin-top:auto;" onclick="doLogout()"><i class="fas fa-sign-out-alt"></i> LOGOUT</div>
+    </div>
+
+    <div id="loginScreen" class="screen active">
+        <div class="top-bar">
+            <i class="fas fa-bars" onclick="showPopup('Please Login First')"></i>
+            <div>
+                <i class="fas fa-bell" onclick="showPopup('No Notifications')"></i>
+                <i class="fas fa-cog" onclick="showPopup('Settings Locked')"></i>
+            </div>
+        </div>
+
+        <div class="login-center">
+            <div class="ruhi-title">RUHI FASHION</div>
+            <div class="offer-card">
+                <div style="color:var(--primary); font-weight:bold; margin-bottom:5px;">RUHI TEXTILE PVT. LTD.</div>
+                MEGA SALE: Flat 50% OFF
+            </div>
+
+            <input type="text" id="uid" placeholder="Email ID / Phone">
+            <input type="password" id="pass" placeholder="Password">
+
+            <button class="btn btn-main" onclick="handleLogin()">LOGIN</button>
+            <button class="btn btn-sec" onclick="goToScreen('detailsScreen')">CREATE ACCOUNT</button>
+            <button class="btn" style="background:#222; border:1px solid #444; color:#ccc;" onclick="showPopup('Coming Soon')">NEED HELP?</button>
+        </div>
+    </div>
+
+    <div id="detailsScreen" class="screen">
+        <div class="login-center">
+            <h2 style="margin-bottom:20px;">PROFILE SETUP</h2>
+            <div style="width:80px; height:80px; background:var(--primary); border-radius:50%; margin:0 auto 20px; display:flex; align-items:center; justify-content:center; font-size:40px; font-weight:bold; color:black;">U</div>
+            <input type="text" id="uname" placeholder="Your Name">
+            <input type="number" id="uage" placeholder="Age">
+            <input type="text" id="ucity" placeholder="City">
+            <button class="btn btn-main" onclick="saveDetails()">ENTER SHOP</button>
+        </div>
+    </div>
+
+    <div id="appScreen" class="screen">
+        <div class="dash-header">
+            <i class="fas fa-bars" style="color:white; font-size:22px;" onclick="toggleMenu()"></i>
+            <span style="color:var(--primary); font-weight:900; font-size:18px;">RUHI FASHION</span>
+            <i class="fas fa-shopping-cart" style="color:white; font-size:22px;" onclick="showPopup('Cart Empty')"></i>
+        </div>
+
+        <div class="dash-body">
+            <div class="banner">
+                <div style="z-index:2;">
+                    <h2>RUHI FASHION</h2>
+                    <p style="font-size:14px;">Best Sale Offer Live</p>
+                </div>
+                <i class="fas fa-shopping-bag"></i>
+            </div>
+
+            <div style="background:#1a1a20; padding:10px; border-radius:10px; margin-bottom:15px; display:flex; align-items:center; gap:10px; border:1px solid #333;">
+                <div style="width:40px; height:40px; background:var(--primary); border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:20px; color:black;" id="uLet">U</div>
+                <div style="color:white; font-weight:bold;" id="uName">GUEST</div>
+            </div>
+
+            <div style="font-weight:bold; margin-bottom:10px;">Trending Now</div>
+            <div class="grid" id="plist"></div>
+        </div>
+
+        <div class="nav">
+            <i class="fas fa-home active"></i>
+            <i class="fas fa-search" onclick="showPopup('Coming Soon')"></i>
+            <i class="fas fa-heart" onclick="showPopup('Coming Soon')"></i>
+            <i class="fas fa-user" onclick="showPopup('Profile')"></i>
+        </div>
+    </div>
+
+    <script>
+        const PHONE = "919608720622";
+        const ITEMS = [
+            {n:'Bollywood Designer', p:1200, i:'IMG_20251206_210754.png'},
+            {n:'Khadi Cotton Kurti', p:550, i:'IMG_20251206_210813.png'},
+            {n:'Bridal Lehenga', p:5000, i:'IMG_20251206_210835.png'},
+            {n:'Azouk Party Dori', p:620, i:'IMG_20251206_210852.png'}
+        ];
+
+        let currentItem = {};
+
+        // --- NAVIGATION ---
+        function goToScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+
+        // --- POPUP ---
+        function showPopup(msg) {
+            document.getElementById('popupMsg').innerText = msg;
+            document.getElementById('popup').style.display = 'flex';
+        }
+        function closePopup() { document.getElementById('popup').style.display = 'none'; }
+
+        // --- LOGIN ---
+        function handleLogin() {
+            let u = document.getElementById('uid').value;
+            let p = document.getElementById('pass').value;
+            if(!u || !p) { showPopup("Enter Email & Password"); return; }
+            
+            document.getElementById('loader').style.display = 'flex';
+            setTimeout(() => {
+                document.getElementById('loader').style.display = 'none';
+                localStorage.setItem('ruhi_login', 'true');
+                checkAuth();
+            }, 1000);
+        }
+
+        function saveDetails() {
+            let n = document.getElementById('uname').value;
+            if(!n) { showPopup("Enter Name"); return; }
+            localStorage.setItem('ruhi_user', n);
+            
+            document.getElementById('loader').style.display = 'flex';
+            setTimeout(() => {
+                document.getElementById('loader').style.display = 'none';
+                checkAuth();
+            }, 1000);
+        }
+
+        function checkAuth() {
+            if(localStorage.getItem('ruhi_login')) {
+                if(localStorage.getItem('ruhi_user')) {
+                    let n = localStorage.getItem('ruhi_user');
+                    document.getElementById('uName').innerText = n.toUpperCase();
+                    document.getElementById('uLet').innerText = n.charAt(0).toUpperCase();
+                    goToScreen('appScreen');
+                } else {
+                    goToScreen('detailsScreen');
+                }
+            } else {
+                goToScreen('loginScreen');
+            }
+        }
+
+        // --- DETAILS POPUP ---
+        function openDetails(n, p, i) {
+            currentItem = {n:n, p:p};
+            document.getElementById('dTitle').innerText = n;
+            document.getElementById('dPrice').innerText = '₹' + p;
+            document.getElementById('dImg').src = i;
+            document.getElementById('detailsPopup').style.display = 'flex';
+        }
+        function closeDetails() { document.getElementById('detailsPopup').style.display = 'none'; }
+        function buyFromDetails() { closeDetails(); buy(currentItem.n, currentItem.p); }
+
+        // --- RENDER ---
+        window.onload = function() {
+            let h = '';
+            ITEMS.forEach(x => {
+                let img = x.i; 
+                h += `<div class="card">
+                    <img src="${img}" class="card-img" onerror="this.src='https://via.placeholder.com/150'">
+                    <div class="card-title">${x.n}</div>
+                    <div class="card-price">₹${x.p}</div>
+                    <div class="btn-row">
+                        <button class="btn-sm btn-view" onclick="openDetails('${x.n}', ${x.p}, '${img}')">VIEW</button>
+                        <button class="btn-sm btn-buy" onclick="buy('${x.n}',${x.p})">BUY</button>
+                    </div>
+                </div>`;
+            });
+            document.getElementById('plist').innerHTML = h;
+            checkAuth();
+        };
+
+        function buy(n, p) {
+            document.getElementById('loader').style.display = 'flex';
+            setTimeout(() => {
+                document.getElementById('loader').style.display = 'none';
+                let u = localStorage.getItem('ruhi_user') || 'Guest';
+                let msg = `*ORDER REQUEST*%0A-----------------%0AItem: ${n}%0APrice: ₹${p}%0A-----------------%0A*Customer:* ${u}`;
+                window.open(`https://wa.me/${PHONE}?text=${msg}`, '_blank');
+            }, 1500);
+        }
+
+        function toggleMenu() {
+            let s = document.getElementById('sidebar');
+            let o = document.getElementById('menuOverlay');
+            if(s.classList.contains('active')) {
+                s.classList.remove('active'); o.style.display='none';
+            } else {
+                s.classList.add('active'); o.style.display='block';
+            }
+        }
+
+        function doLogout() {
+            if(confirm("Logout?")) {
+                localStorage.clear();
+                window.location.reload();
+            }
+        }
+    </script>
+</body>
+</html>
